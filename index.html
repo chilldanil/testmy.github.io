@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBHcr8zC70HH5H3NsxvFC1scMvTu86xJJ4&libraries=places"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.11/typed.min.js"></script>
+</head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="hi_hero"><span id="typing"></span></h1>
+
+          <form>
+            <div class="form-group">
+              <label for="shortTitle">Give us the short title:</label>
+              <input type="text" class="form-control" id="shortTitle" placeholder="Enter short title">
+            </div>
+            <div class="form-group">
+              <label for="timeSpotted">Schedule a time you have spotted it the first time:</label>
+              <div class="input-group">
+                <input type="datetime-local" class="form-control" id="timeSpotted">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-secondary" id="btnNow">Now</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="nearestLocality">The nearest locality:</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="nearestLocality" placeholder="Enter nearest locality">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-secondary" id="btnHere">Here</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="geolocation">Exact Coordinates of Your Location:</label>
+              <input type="text" class="form-control" id="geolocation" placeholder="Enter coordinates">
+            </div>
+            <div class="form-group">
+                <label for="picture">Take a picture of the target:</label>
+                <input type="file" class="form-control-file" id="picture">
+                <div id="image-preview">
+                    <button type="button" class="btn btn-danger" id="btnRemoveImage">Remove Image</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="additionalInfo">Additional Information:</label>
+                <textarea class="form-control" id="additionalInfo" rows="5" placeholder="Enter additional information"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Submit</button>
+            </form>
+        </div>
+      </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+          // Get current date and time and set it as the default value for the timeSpotted input
+          var now = new Date().toISOString().slice(0, 16);
+          $('#timeSpotted').val(now);
+      
+          // Add click event listener to the Now button
+          $('#btnNow').click(function() {
+            now = new Date().toISOString().slice(0, 16);
+            $('#timeSpotted').val(now);
+          });
+      
+          // Add click event listener to the Here button
+          $('#btnHere').click(function() {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(function(position) {
+                var geocoder = new google.maps.Geocoder();
+                var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                geocoder.geocode({ 'location': latLng }, function(results, status) {
+                  if (status == 'OK') {
+                    var locality = '';
+                    for (var i = 0; i < results.length; i++) {
+                      if (results[i].types.includes('locality')) {
+                        locality = results[i].formatted_address;
+                        break;
+                      }
+                    }
+                    $('#nearestLocality').val(locality);
+                    $('#geolocation').val(position.coords.latitude + ', ' + position.coords.longitude);
+                  } else {
+                    console.log('Geocode was not successful for the following reason: ' + status);
+                  }
+                });
+              });
+            } else {
+              console.log('Geolocation is not supported by this browser.');
+            }
+          });
+        }); 
+
+        $('#picture').change(function() {
+             var input = this;
+     if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      $('#image-preview button').show();
+      $('#image-preview').css('background-image', 'url(' + e.target.result + ')');
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+});
+
+$('#btnRemoveImage').click(function() {
+  $('#picture').val('');
+  $('#image-preview button').hide();
+  $('#image-preview').css('background-image', 'none');
+});
+
+      </script>
+
+<script>
+    // Create a new Typed.js instance with options
+    var typed = new Typed('#typing', {
+      strings: ['Hi, hero! What are we working on today?!'],
+      typeSpeed: 80,
+      backSpeed: 30,
+      startDelay: 1000,
+      loop: false,
+      showCursor: true,
+      cursorChar: '|',
+      onComplete: function(self) {
+        self.cursor.remove();
+      }
+    });
+  </script>
+</body>
+<footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 style="margin-bottom: -3.5rem;" class="hi_hero">I see the target</h1><span style="font-size: 3.5rem">&#x1F441 &#x1F3AF &#x1F4A5</span>
+        </div>
+      </div>
+    </div>
+  </footer>  
+</html>      

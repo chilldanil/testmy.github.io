@@ -1,0 +1,54 @@
+.hi_hero {
+  padding: 2rem 0rem 2rem 0rem;
+  color: #004D81;
+  font-weight: 600;
+}
+.hi_hero {
+  background: linear-gradient(to right, #00bfff, #ffff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-animation: text-color 5s ease infinite;
+  -moz-animation: text-color 5s ease infinite;
+  animation: text-color 5s ease infinite;
+}
+
+@-webkit-keyframes text-color {
+  0% {
+    -webkit-text-fill-color: #00bfff;
+  }
+  50% {
+    -webkit-text-fill-color: #ffff00;
+  }
+  100% {
+    -webkit-text-fill-color: #00bfff;
+  }
+}
+
+@-moz-keyframes text-color {
+  0% {
+    color: #00bfff;
+  }
+  50% {
+    color: #ffff00;
+  }
+  100% {
+    color: #00bfff;
+  }
+}
+
+@keyframes text-color {
+  0% {
+    color: #00bfff;
+  }
+  50% {
+    color: #ffff00;
+  }
+  100% {
+    color: #00bfff;
+  }
+}
+#image-preview button {
+  display: none;
+  margin: 5px;
+}
+
