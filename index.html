@@ -4,8 +4,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="index.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <style>
     #overlay {
       display: flex;
@@ -70,6 +71,7 @@
             <label for="geolocation">Exact Coordinates of Your Location:</label>
             <input type="text" class="form-control" id="geolocation" placeholder="Enter coordinates">
           </div>
+          <div id="map" style="height: 300px;"></div>
           <div class="form-group">
             <label for="picture">Take a picture of the target:</label>
             <input type="file" class="form-control-file" id="picture">
@@ -104,10 +106,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
   <script>
     $(document).ready(function () {
       var now = new Date().toLocaleString('lt-LT', { timeZone: 'Europe/Vilnius' }).slice(0, 16);
@@ -138,7 +137,6 @@
             var nearestLocality = data.address.city || data.address.town || data.address.village || data.address.hamlet;
             $('#nearestLocality').val(nearestLocality);
             $('#geolocation').val(`${lat}, ${lon}`);
-            showMap(lat, lon);
           })
           .fail(function () {
             console.log('Failed to retrieve reverse geocoding data from OSM Nominatim API.');
@@ -148,99 +146,46 @@
       function onPositionError(error) {
         console.log('Error occurred while getting geolocation: ' + error.message);
       }
-
-      // Initialize Mapbox Geocoder
-      mapboxgl.accessToken = 'pk.eyJ1IjoiY2hpbGxkYW5pbGwiLCJhIjoiY2xqYmw2bmh1Mjc1czNubnhmd3U4NnNtMyJ9'; // Replace with your Mapbox access token
-      var geocoder = new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        countries: 'US',
-        language: 'en',
-        types: 'place',
-      });
-
-      document.getElementById('nearestLocality').appendChild(geocoder.onAdd(map));
-
-      // Update coordinates input when a locality is selected
-      geocoder.on('result', function (result) {
-        var coordinates = result.result.center;
-        var latitude = coordinates[1];
-        var longitude = coordinates[0];
-        $('#geolocation').val(`${latitude}, ${longitude}`);
-        showMap(latitude, longitude);
-      });
-
-      function showMap(latitude, longitude) {
-        var map = L.map('map').setView([latitude, longitude], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-        }).addTo(map);
-        L.marker([latitude, longitude]).addTo(map);
-      }
     });
   </script>
 
-  <script>
-    $(document).ready(function () {
-      $('#submitButton').click(function (event) {
-        event.preventDefault(); // Prevent form submission
 
-        // Retrieve form values
-        var shortTitle = $('#shortTitle').val();
-        var timeSpotted = $('#timeSpotted').val();
-        var nearestLocality = $('#nearestLocality').val();
-        var geolocation = $('#geolocation').val();
-        var additionalInfo = $('#additionalInfo').val();
+<script>
+  $(document).ready(function () {
+    $("#submitButton").click(function () {
+      // Capture form data
+      var formData = {
+        shortTitle: $("#shortTitle").val(),
+        timeSpotted: $("#timeSpotted").val(),
+        nearestLocality: $("#nearestLocality").val(),
+        geolocation: $("#geolocation").val(),
+        additionalInfo: $("#additionalInfo").val(),
+        picture: "1.png",
+        status: "Ready to work"
+      };
 
-        // Create a new FormData object
-        var formData = new FormData();
-
-        // Append form values to the FormData object
-        formData.append('shortTitle', shortTitle);
-        formData.append('timeSpotted', timeSpotted);
-        formData.append('nearestLocality', nearestLocality);
-        formData.append('geolocation', geolocation);
-        formData.append('additionalInfo', additionalInfo);
-
-        // Retrieve the image file
-        var imageFile = $('#picture')[0].files[0];
-
-        // Append the image file to the FormData object
-        formData.append('picture', imageFile);
-
-        // Convert the FormData object to JSON
-        var jsonData = JSON.stringify(Object.fromEntries(formData));
-
-        // Display JSON data in the console
-        console.log(jsonData);
-
-        // Show the overlay block
-        $('#overlay').show();
-
-        // Update the overlay table with the form data
-        var tableBody = $('#overlay-table tbody');
-        tableBody.empty();
-        tableBody.append(createTableRow('Short Title', shortTitle));
-        tableBody.append(createTableRow('Time Spotted', timeSpotted));
-        tableBody.append(createTableRow('Nearest Locality', nearestLocality));
-        tableBody.append(createTableRow('Geolocation', geolocation));
-        tableBody.append(createTableRow('Additional Info', additionalInfo));
-
-        // Clear the form fields
-        $('#myForm')[0].reset();
+      // Send POST request
+      $.ajax({
+        type: "POST",
+        url: "http://127.0.0.1:8080/api/v1/alerts",
+        data: JSON.stringify(formData),
+        contentType: "application/json",
+        success: function (response) {
+          // Handle success response here
+          console.log("Success:", response);
+        },
+        error: function (error) {
+          // Handle error response here
+          console.error("Error:", error);
+        }
       });
-
-      // Close the overlay block
-      $('#closeOverlay').click(function () {
-        $('#overlay').hide();
-      });
-
-      // Helper function to create a table row
-      function createTableRow(field, value) {
-        return '<tr><td>' + field + '</td><td>' + value + '</td></tr>';
-      }
     });
-  </script>
+
+  });
+</script>
+
+
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.11/typed.min.js"></script>
   <script>
@@ -258,6 +203,95 @@
     });
   </script>
 
+
+<script>
+  $(document).ready(function () {
+    $('#submitButton').click(function (event) {
+      event.preventDefault(); // Prevent form submission
+
+      // Show the overlay block
+      $('#overlay').show();
+
+          // Extract values from form fields
+      var shortTitle = $("#shortTitle").val();
+      var timeSpotted = $("#timeSpotted").val();
+      var nearestLocality = $("#nearestLocality").val();
+      var geolocation = $("#geolocation").val();
+      var additionalInfo = $("#additionalInfo").val();
+
+      // Update the overlay table with the form data
+      var tableBody = $('#overlay-table tbody');
+      tableBody.empty();
+      tableBody.append(createTableRow('Short Title', shortTitle));
+      tableBody.append(createTableRow('Time Spotted', timeSpotted));
+      tableBody.append(createTableRow('Nearest Locality', nearestLocality));
+      tableBody.append(createTableRow('Geolocation', geolocation));
+      tableBody.append(createTableRow('Additional Info', additionalInfo));
+
+      // Clear the form fields
+      $('#myForm')[0].reset();
+    });
+
+    // Close the overlay block
+    $('#closeOverlay').click(function () {
+      $('#overlay').hide();
+    });
+
+    // Helper function to create a table row
+    function createTableRow(field, value) {
+      return '<tr><td>' + field + '</td><td>' + value + '</td></tr>';
+    }
+  });
+</script>
+
+<script>
+  // Your existing code...
+
+  // Add the Mapbox map integration
+  mapboxgl.accessToken = 'pk.eyJ1IjoiY2hpbGxkYW5pbGwiLCJhIjoiY2xsM3dzNDB4MDBzYjNmbGIxZ3R2djFpZSJ9.NRWNPVBPve1lhzktWu6HbA';
+  const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+    style: 'mapbox://styles/mapbox/streets-v12', // style URL
+    center: [39, 48], // starting position [lng, lat]
+    zoom: 9 // starting zoom
+  });
+
+  // Add a variable to store the marker
+  let marker = null;
+
+  // Add an event listener to the map for the "click" event
+  map.on('click', function (e) {
+    // If a marker already exists, remove it first
+    if (marker) {
+      marker.remove();
+    }
+
+    // Create a new marker at the clicked location
+    marker = new mapboxgl.Marker()
+      .setLngLat(e.lngLat)
+      .addTo(map);
+
+    // Update the input field with the coordinates of the marker
+    $('#geolocation').val(`${e.lngLat.lng}, ${e.lngLat.lat}`);
+  });
+
+  // Add an event listener to the "Add Marker" button
+  $('#btnAddMarker').click(function () {
+    // If the marker already exists, remove it first
+    if (marker) {
+      marker.remove();
+    }
+
+    // Get the coordinates from the input field
+    const coordinates = $('#geolocation').val().split(',');
+
+    // Create a new marker at the specified coordinates
+    marker = new mapboxgl.Marker()
+      .setLngLat([parseFloat(coordinates[0]), parseFloat(coordinates[1])])
+      .addTo(map);
+  });
+</script>
   <footer>
     <div class="container">
       <div class="row">
